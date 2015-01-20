@@ -1,8 +1,8 @@
-var urlRegex = /https?:\/\/github\.com\/(\w+)\/(\w+)\/issues(\??.*)/g;
+var urlRegex = /https?:\/\/github\.com\/([\w-]+)\/([\w-]+)\/issues(\??.*)/g;
 
-var pageToSaveRegex = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues\?q=.*/;
-var pageToLoadRegex = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues$/;
-var pageToLoadRegexAlternate = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues\?_pjax=.*$/;
+var pageToSaveRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues(.+)/;
+var pageToLoadRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues$/;
+var pageToLoadRegexAlternate = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\?_pjax=.*$/;
 
 function keyFromURL(url) {
     username = url.replace(urlRegex, "$1");
@@ -10,24 +10,7 @@ function keyFromURL(url) {
     return username + "/" + repository;
 }
 
-function handleURL(url) {
-    if (url.match(pageToSaveRegex)) {
-        pos = url.indexOf("?");
-        querystring = url.substring(pos);
-        window.localStorage.setItem(keyFromURL(url), querystring);
-    }
-    else if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
-        // Replace with the saved URL if it exists.
-        savedQuerystring = window.localStorage.getItem(keyFromURL(url));
-        if (savedQuerystring) {
-            url = "https://github.com/" + keyFromURL(url) + "/issues" + savedQuerystring;
-            return url;
-        }
-    }
-
-    return null;
-}
-
+/*
 safari.application.addEventListener("beforeNavigate", function(event) {
     redirectedURL = handleURL(event.url);
     if (redirectedURL) {
@@ -35,15 +18,30 @@ safari.application.addEventListener("beforeNavigate", function(event) {
         window.location.href = url;
     }
 }, false);
+*/
 
 safari.application.addEventListener("message", function(event) {
-    params = event.message;
+    url = event.message;
+    pos = url.indexOf("?");
+    querystring = url.substring(pos);
+    console.log("Should handle URL? " + url);
 
-    if (event.name === "set") {
-        window.localStorage.setItem(keyFromURL(params.url), params.value);
-    }
-    else if (event.name === "get") {
-        params.value = window.localStorage.getItem(keyFromURL(params.url));
-        event.target.page.dispatchMessage("querystring", params);
+    if (url) {
+        if (event.name === "save") {
+            if (url.match(urlRegex)) {
+                querystring = url.replace(urlRegex, "$3");
+                window.localStorage.setItem(keyFromURL(url), querystring);
+                event.target.page.dispatchMessage("postSave", null);
+                console.log("saved: " + url);
+            }
+        }
+        else if (event.name === "replace") {
+            if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
+                querystring = window.localStorage.getItem(keyFromURL(url));
+                url = "https://github.com/" + keyFromURL(url) + "/issues" + querystring;
+                event.target.page.dispatchMessage("url", url);
+                console.log("gotten: " + url);
+            }
+        }
     }
 }, false);

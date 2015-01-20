@@ -1,59 +1,58 @@
-var urlRegex = /https?:\/\/github\.com\/(\w+)\/(\w+)\/issues(\??.*)/g;
+var pageToLoadRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues$/;
 
-var pageToSaveRegex = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues\?q=.*/;
-var pageToLoadRegex = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues$/;
-var pageToLoadRegexAlternate = /https?:\/\/github.com\/[.^\/]+\/[.^\/]+\/issues\?_pjax=.*$/;
-
-function handleURL(url) {
-    params = {
-        "url": url,
-        "value": querystring
+function getAllElementsWithAttribute(attribute) {
+    var matchingElements = [];
+    var allElements = document.getElementsByTagName('*');
+    for (var i = 0, n = allElements.length; i < n; i++) {
+        if (allElements[i].getAttribute(attribute) !== null) {
+            // Element exists with attribute. Add to array.
+            matchingElements.push(allElements[i]);
+        }
     }
-
-    if (url.match(pageToSaveRegex)) {
-        pos = url.indexOf("?");
-        querystring = url.substring(pos);
-        safari.self.tab.dispatchMessage("set", params)
-    }
-    else if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
-        safari.self.tab.dispatchMessage("get", params);
-    }
+    return matchingElements;
 }
 
-newURL = handleURL(document.location.href);
-if (newURL) {
-    document.location.href = newURL;
+function saveURL(url) {
+    safari.self.tab.dispatchMessage("save", url);
 }
 
-(function(pushState){
+(function(pushState) {
     var pushState = window.history.pushState;
     window.history.pushState = function(state, title, url) {
-        console.log("yo");
-        newURL = handleURL(e.target.href);
-        if (newURL) {
-            window.location.href = newURL;
-        }
-        else {
-            return pushState.apply(this, arguments);
-        }
+        saveURL(e.target.href);
+        return pushState.apply(this, arguments);
     }
 })(window.history.pushState);
 
+var originalOpen = window.XMLHttpRequest.prototype.open;
+window.XMLHttpRequest.prototype.open = function(method, url, async, username, password) {
+    saveURL(url);
+    return originalOpen.apply(this, arguments);
+}
+
 document.addEventListener("click", function(e) {
     if (e.target.href) {
-        newURL = handleURL(e.target.href);
-        if (newURL) {
-            e.target.href = newURL;
-        }
+        saveURL(e.target.href);
     }
 });
 
 safari.self.addEventListener("message", function(event) {
-    if (event.name === "querystring") {
-        params = event.message;
-        if (params) {
-            url = "https://github.com/" + keyFromURL(params.url) + "/issues" + params.value;
-            window.location.href = url;
+    if (event.name === "url") {
+        url = event.message;
+        if (url) {
+            var elems = getAllElementsWithAttribute("href");
+            for (var i=0; i<elems.length; i++) {
+                var elem = elems[i];
+                if (elem.href.match(/[\w-]+\/[\w-]+\/issues$/)) {
+                    elem.href = url;
+                }
+            }
         }
     }
+    else if (event.name === "postSave") {
+        safari.self.tab.dispatchMessage("replace", document.location.href);
+    }
 }, false);
+
+safari.self.tab.dispatchMessage("save", document.location.href);
+
