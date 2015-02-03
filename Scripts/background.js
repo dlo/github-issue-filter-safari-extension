@@ -45,3 +45,4 @@ safari.application.addEventListener("message", function(event) {
         }
     }
 }, false);
+
