@@ -6,24 +6,10 @@ function keyFromURL(url) {
     return username + "/" + repository;
 }
 
-/*
-safari.application.addEventListener("beforeNavigate", function(event) {
-    console.log(event.url);
-    querystring = window.localStorage.getItem(keyFromURL(url));
-    url = "https://github.com/" + keyFromURL(url) + "/issues" + querystring;
-
-    if (url) {
-        event.preventDefault();
-        window.location.href = url;
-    }
-}, false);
-*/
-
 safari.application.addEventListener("message", function(event) {
     url = event.message;
     pos = url.indexOf("?");
     querystring = url.substring(pos);
-    console.log("Should handle URL? " + url);
 
     if (url) {
         if (event.name === "save") {

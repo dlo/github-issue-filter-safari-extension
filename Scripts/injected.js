@@ -57,17 +57,8 @@ var pageToLoadRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues$/;
 var pageToLoadRegexAlternate = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\?_pjax=.*$/;
 var originalURL;
 
-function getAllElementsWithAttribute(attribute) {
-    var matchingElements = [];
-    var allElements = document.getElementsByTagName('*');
-    for (var i = 0, n = allElements.length; i < n; i++) {
-        if (allElements[i].getAttribute(attribute) !== null) {
-            // Element exists with attribute. Add to array.
-            matchingElements.push(allElements[i]);
-        }
-    }
-    return matchingElements;
-}
+var issuesPageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/(pulls|issues).*/;
+var issuePermalinkPageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/(pulls|issues)\/\d+$/;
 
 function handleURL(e) {
     var url = this.href
@@ -81,7 +72,6 @@ function handleURL(e) {
         originalURL = url;
         safari.self.tab.dispatchMessage("save", url);
         window.location.href = url;
-        replaceLinks();
     }
 }
 
@@ -90,22 +80,26 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 function replaceLinks() {
-    observer.disconnect();
+    var isIssuesPage = window.location.href.match(issuesPageRegex);
+    var isIssuePermalinkPage = window.location.href.match(issuePermalinkPageRegex);
+    if (isIssuesPage && !isIssuePermalinkPage) {
+        observer.disconnect();
 
-    var links = document.querySelectorAll("*");
-    for (i in links){
-        if (links[i] && links[i].getAttribute){
-            var href = links[i].getAttribute('href');
-            if (href){
-                var absoluteURL = URI(href).absoluteTo(window.location.href)
-                links[i].href = absoluteURL.toString();
-                links[i].removeEventListener("click", handleURL, false);
-                links[i].addEventListener("click", handleURL, false);
+        var links = document.querySelectorAll("*");
+        for (i in links){
+            if (links[i] && links[i].getAttribute){
+                var href = links[i].getAttribute('href');
+                if (href){
+                    var absoluteURL = URI(href).absoluteTo(window.location.href)
+                    links[i].href = absoluteURL.toString();
+                    links[i].removeEventListener("click", handleURL, false);
+                    links[i].addEventListener("click", handleURL, false);
+                }
             }
         }
-    }
 
-    startObserving()
+        startObserving()
+    }
 }
 
 function startObserving() {
@@ -120,6 +114,7 @@ if (window == window.top) {
         url = event.message;
         if (event.name === "url") {
             window.location.href = url;
+            replaceLinks();
         }
     }, false);
 }
