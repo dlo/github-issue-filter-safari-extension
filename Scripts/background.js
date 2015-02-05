@@ -1,8 +1,4 @@
-var urlRegex = /https?:\/\/github\.com\/([\w-]+)\/([\w-]+)\/issues(\??.*)/g;
-
-var pageToSaveRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues(.+)/;
-var pageToLoadRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues$/;
-var pageToLoadRegexAlternate = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\?_pjax=.*$/;
+var urlRegex = /https?:\/\/github\.com\/([\w-]+)\/([\w-]+)\/(pulls|issues)(\??.*)/g;
 
 function keyFromURL(url) {
     username = url.replace(urlRegex, "$1");
@@ -12,8 +8,11 @@ function keyFromURL(url) {
 
 /*
 safari.application.addEventListener("beforeNavigate", function(event) {
-    redirectedURL = handleURL(event.url);
-    if (redirectedURL) {
+    console.log(event.url);
+    querystring = window.localStorage.getItem(keyFromURL(url));
+    url = "https://github.com/" + keyFromURL(url) + "/issues" + querystring;
+
+    if (url) {
         event.preventDefault();
         window.location.href = url;
     }
@@ -28,20 +27,15 @@ safari.application.addEventListener("message", function(event) {
 
     if (url) {
         if (event.name === "save") {
-            if (url.match(urlRegex)) {
-                querystring = url.replace(urlRegex, "$3");
-                window.localStorage.setItem(keyFromURL(url), querystring);
-                event.target.page.dispatchMessage("postSave", null);
-                console.log("saved: " + url);
-            }
+            querystring = url.replace(urlRegex, "$3$4");
+            window.localStorage.setItem(keyFromURL(url), querystring);
         }
         else if (event.name === "replace") {
-            if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
-                querystring = window.localStorage.getItem(keyFromURL(url));
-                url = "https://github.com/" + keyFromURL(url) + "/issues" + querystring;
-                event.target.page.dispatchMessage("url", url);
-                console.log("gotten: " + url);
+            querystring = window.localStorage.getItem(keyFromURL(url));
+            if (querystring) {
+                url = "https://github.com/" + keyFromURL(url) + "/" + querystring;
             }
+            event.target.page.dispatchMessage("url", url);
         }
     }
 }, false);
