@@ -11,18 +11,16 @@ safari.application.addEventListener("message", function(event) {
     pos = url.indexOf("?");
     querystring = url.substring(pos);
 
-    if (url) {
-        if (event.name === "save") {
-            querystring = url.replace(urlRegex, "$3$4");
-            window.localStorage.setItem(keyFromURL(url), querystring);
+    if (event.name === "save") {
+        querystring = url.replace(urlRegex, "$3$4");
+        window.localStorage.setItem(keyFromURL(url), querystring);
+    }
+    else if (event.name === "replace") {
+        querystring = window.localStorage.getItem(keyFromURL(url));
+        if (querystring) {
+            url = "https://github.com/" + keyFromURL(url) + "/" + querystring;
         }
-        else if (event.name === "replace") {
-            querystring = window.localStorage.getItem(keyFromURL(url));
-            if (querystring) {
-                url = "https://github.com/" + keyFromURL(url) + "/" + querystring;
-            }
-            event.target.page.dispatchMessage("url", url);
-        }
+        event.target.page.dispatchMessage("url", url);
     }
 }, false);
 
