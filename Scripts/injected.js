@@ -1,4 +1,9 @@
+var urlRegex = /https?:\/\/github\.com\/([\w-]+)\/([\w-]+)\/issues(\??.*)/g;
+
+var pageToSaveRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues(.+)/;
 var pageToLoadRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues$/;
+var pageToLoadRegexAlternate = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\?_pjax=.*$/;
+var originalURL;
 
 function getAllElementsWithAttribute(attribute) {
     var matchingElements = [];
@@ -12,33 +17,34 @@ function getAllElementsWithAttribute(attribute) {
     return matchingElements;
 }
 
-function saveURL(url) {
-    safari.self.tab.dispatchMessage("save", url);
+function handleURL(e) {
+    var url = this.href
+    if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
+        e.preventDefault();
+        safari.self.tab.dispatchMessage("save", url);
+    }
+    else if (url.match(pageToSaveRegex)) {
+        originalURL = url;
+        safari.self.tab.dispatchMessage("save", url);
+    }
 }
 
-(function(pushState) {
-    var pushState = window.history.pushState;
-    window.history.pushState = function(state, title, url) {
-        saveURL(e.target.href);
-        return pushState.apply(this, arguments);
+// add handler to all torrent links
+var links = document.querySelectorAll("a");
+for (i in links){
+    if (links[i] && links[i].getAttribute){
+        var href = links[i].getAttribute('href');
+        if (href && href[0] === '/'){
+            links[i].removeEventListener("click", handleURL, false);
+            links[i].addEventListener("click", handleURL, false);
+        }
     }
-})(window.history.pushState);
-
-var originalOpen = window.XMLHttpRequest.prototype.open;
-window.XMLHttpRequest.prototype.open = function(method, url, async, username, password) {
-    saveURL(url);
-    return originalOpen.apply(this, arguments);
 }
-
-document.addEventListener("click", function(e) {
-    if (e.target.href) {
-        saveURL(e.target.href);
-    }
-});
 
 safari.self.addEventListener("message", function(event) {
+    url = event.message;
     if (event.name === "url") {
-        url = event.message;
+        window.location.href = url;
         if (url) {
             var elems = getAllElementsWithAttribute("href");
             for (var i=0; i<elems.length; i++) {
@@ -50,9 +56,7 @@ safari.self.addEventListener("message", function(event) {
         }
     }
     else if (event.name === "postSave") {
-        safari.self.tab.dispatchMessage("replace", document.location.href);
+        window.location.href = url;
     }
 }, false);
-
-safari.self.tab.dispatchMessage("save", document.location.href);
 
