@@ -7,7 +7,8 @@ var pageToLoadRegexAlternate = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\?_
 var originalURL;
 
 var issuesPageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/(pulls|issues).*/;
-var issuePermalinkPageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/(pulls|issues)\/\d+$/;
+var issuePermalinkPageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/(pulls|issues)\/\d+.*$/;
+var newIssuePageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\/new$/;
 
 function handleURL(e) {
     var url = this.href
@@ -31,7 +32,8 @@ var observer = new MutationObserver(function(mutations) {
 function replaceLinks() {
     var isIssuesPage = window.location.href.match(issuesPageRegex);
     var isIssuePermalinkPage = window.location.href.match(issuePermalinkPageRegex);
-    if (isIssuesPage && !isIssuePermalinkPage) {
+    var isNewIssuePage = window.location.href.match(newIssuePageRegex);
+    if (isIssuesPage && !isIssuePermalinkPage && !isNewIssuePage) {
         observer.disconnect();
 
         var links = document.querySelectorAll("*");
@@ -56,15 +58,17 @@ function startObserving() {
     observer.observe(target, {childList: true, subtree: true, attributes: true, characterData: false});
 }
 
-if (window == window.top) {
-    replaceLinks();
+window.onload = function() {
+    if (window == window.top) {
+        replaceLinks();
 
-    safari.self.addEventListener("message", function(event) {
-        url = event.message;
-        if (event.name === "url") {
-            window.location.href = url;
-            replaceLinks();
-        }
-    }, false);
+        safari.self.addEventListener("message", function(event) {
+            url = event.message;
+            if (event.name === "url") {
+                window.location.href = url;
+                replaceLinks();
+            }
+        }, false);
+    }
 }
 
