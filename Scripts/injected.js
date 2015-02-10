@@ -60,15 +60,17 @@ function startObserving() {
 
 window.onload = function() {
     if (window == window.top) {
-        replaceLinks();
+        setTimeout(function() {
+            replaceLinks();
 
-        safari.self.addEventListener("message", function(event) {
-            url = event.message;
-            if (event.name === "url") {
-                window.location.href = url;
-                replaceLinks();
-            }
-        }, false);
+            safari.self.addEventListener("message", function(event) {
+                url = event.message;
+                if (event.name === "url") {
+                    window.location.href = url;
+                    replaceLinks();
+                }
+            }, false);
+        }, 200);
     }
 }
 
