@@ -17,7 +17,7 @@ function handleURL(e) {
         e.preventDefault();
         safari.self.tab.dispatchMessage("replace", url);
     }
-    else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate)) {
+    else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate) && !url.match(issuePermalinkPageRegex)) {
         e.preventDefault();
         originalURL = url;
         safari.self.tab.dispatchMessage("save", url);
