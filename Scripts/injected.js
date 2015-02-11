@@ -23,7 +23,7 @@ function handleURL(e) {
         safari.self.tab.dispatchMessage("save", url);
         window.location.href = url;
     }
-    else {
+    else if (url.match(issuesPageRegex)) {
         e.preventDefault();
         window.location.href = url;
     }
