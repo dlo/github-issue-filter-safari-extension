@@ -17,15 +17,15 @@ function handleURL(e) {
         e.preventDefault();
         safari.self.tab.dispatchMessage("replace", url);
     }
-    else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate) && !url.match(issuePermalinkPageRegex)) {
-        e.preventDefault();
-        originalURL = url;
-        safari.self.tab.dispatchMessage("save", url);
-        window.location.href = url;
-    }
-    else if (url.match(issuesPageRegex)) {
-        e.preventDefault();
-        window.location.href = url;
+    else {
+        if (url.match(issuesPageRegex) || url.match(newIssuePageRegex) || url.match(issuePermalinkPageRegex)) {
+        }
+        else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate)) {
+            e.preventDefault();
+            originalURL = url;
+            safari.self.tab.dispatchMessage("save", url);
+            window.location.href = url;
+        }
     }
 }
 
