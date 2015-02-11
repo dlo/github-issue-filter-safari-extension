@@ -23,6 +23,10 @@ function handleURL(e) {
         safari.self.tab.dispatchMessage("save", url);
         window.location.href = url;
     }
+    else {
+        e.preventDefault();
+        window.location.href = url;
+    }
 }
 
 var observer = new MutationObserver(function(mutations) {
@@ -30,32 +34,30 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 function replaceLinks() {
-    var isIssuesPage = window.location.href.match(issuesPageRegex);
-    var isIssuePermalinkPage = window.location.href.match(issuePermalinkPageRegex);
-    var isNewIssuePage = window.location.href.match(newIssuePageRegex);
-    if (isIssuesPage && !isIssuePermalinkPage && !isNewIssuePage) {
-        observer.disconnect();
+    observer.disconnect();
 
-        var links = document.querySelectorAll("*");
-        for (i in links){
-            if (links[i] && links[i].getAttribute){
-                var href = links[i].getAttribute('href');
-                if (href){
-                    var absoluteURL = URI(href).absoluteTo(window.location.href)
-                    links[i].href = absoluteURL.toString();
-                    links[i].removeEventListener("click", handleURL, false);
-                    links[i].addEventListener("click", handleURL, false);
-                }
+    var links = document.querySelectorAll("*");
+    for (i in links) {
+        if (links[i] && links[i].getAttribute){
+            var href = links[i].getAttribute('href');
+            if (href) {
+                var absoluteURL = URI(href).absoluteTo(window.location.href)
+                links[i].href = absoluteURL.toString();
+                links[i].removeEventListener("click", handleURL, false);
+                links[i].addEventListener("click", handleURL, false);
             }
         }
-
-        startObserving()
     }
-}
 
-function startObserving() {
     var target = document.querySelector(".table-list-filters");
-    observer.observe(target, {childList: true, subtree: true, attributes: true, characterData: false});
+    if (target !== null) {
+        observer.observe(target, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: false
+        });
+    }
 }
 
 window.onload = function() {
