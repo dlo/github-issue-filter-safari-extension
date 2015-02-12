@@ -13,19 +13,17 @@ var newIssuePageRegex = /https?:\/\/github.com\/[\w-]+\/[\w-]+\/issues\/new$/;
 function handleURL(e) {
     var url = this.href
 
-    if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
+    if (url.match(newIssuePageRegex) || url.match(issuePermalinkPageRegex)) {
+    }
+    else if (url.match(pageToLoadRegex) || url.match(pageToLoadRegexAlternate)) {
         e.preventDefault();
         safari.self.tab.dispatchMessage("replace", url);
     }
-    else {
-        if (url.match(issuesPageRegex) || url.match(newIssuePageRegex) || url.match(issuePermalinkPageRegex)) {
-        }
-        else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate)) {
-            e.preventDefault();
-            originalURL = url;
-            safari.self.tab.dispatchMessage("save", url);
-            window.location.href = url;
-        }
+    else if (url.match(pageToSaveRegex) || url.match(pageToSaveRegexAlternate)) {
+        e.preventDefault();
+        originalURL = url;
+        safari.self.tab.dispatchMessage("save", url);
+        window.location.href = url;
     }
 }
 
