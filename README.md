@@ -13,7 +13,7 @@ If you're looking for the Chrome version of this extension, head over [here](htt
 How it works
 ------------
 
-GitHub issues relies pretty heavily on Javascript &amp; PJAX, and Safari's extension capabilities are a bit restricted as compared to Chrome's. So, here's what it does.
+GitHub issues relies pretty heavily on Javascript &amp; PJAX, and Safari's extension capabilities are a bit restricted as compared to Chrome's (needless to say, the Chrome extension is much simpler). So, here's how it does what it does.
 
 1. After page load, it goes through every link on the page and convert the target to a absolute URL and overrides the click handler to call a function.
 2. When a link it clicked, the URL is matched to either a regular expression that indicates it's a filter that should be saved, or a link that should load the filter (i.e., https://github.com/username/repo/issues).
