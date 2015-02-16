@@ -15,7 +15,7 @@ function handleURL(e) {
         e.preventDefault();
         safari.self.tab.dispatchMessage("replace", url);
     }
-    else if (url.match(pageToSaveRegex) && !url.match(newIssuePageRegex) && !url.match(issuePermalinkPageRegex)) {
+    else if (url.match(pageToSaveRegex)) {
         safari.self.tab.dispatchMessage("save", url);
     }
 }
@@ -62,7 +62,8 @@ function replaceLinks() {
 }
 
 window.onload = function() {
-    if (window == window.top) {
+    url = window.location.href;
+    if (window == window.top && !url.match(newIssuePageRegex) && !url.match(issuePermalinkPageRegex)) {
         replaceLinks();
 
         safari.self.addEventListener("message", function(event) {
