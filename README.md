@@ -10,6 +10,11 @@ This extension is open source. If you encounter any bugs, don't hesitate to make
 
 If you're looking for the Chrome version of this extension, head over [here](https://github.com/dlo/github-issue-filter-chrome-extension).
 
+Installation
+------------
+
+Just download and install the "GitHub Issues Filter Saver.safariextz" file in the repo. [Direct link](https://github.com/dlo/github-issue-filter-safari-extension/blob/master/GitHub%20Issues%20Filter%20Saver.safariextz?raw=true).
+
 How it works
 ------------
 
