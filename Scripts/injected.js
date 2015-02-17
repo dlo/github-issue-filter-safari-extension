@@ -64,7 +64,7 @@ function replaceLinks() {
 
 window.onload = function() {
     url = window.location.href;
-    if (window == window.top && !url.match(newIssuePageRegex) && !url.match(issuePermalinkPageRegex)) {
+    if (window == window.top) {
         replaceLinks();
 
         safari.self.addEventListener("message", function(event) {
